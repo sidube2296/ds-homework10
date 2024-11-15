@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
@@ -16,14 +15,24 @@ import edu.uwm.cs351.util.AbstractEntry;
 /**
  * Multiset of strings, sorted lexicographically.
  */
-public class WordMultiset // extends something
+public class WordMultiset extends AbstractMap<String, Integer> // extends something
 {
-	private static class Node // extends something
+	private static class Node extends AbstractEntry<String, Integer> // extends something
 	{
 		String string;
 		int count;
 		Node left, right, next;
 		Node (String s) { string = s; count = 1; }
+		@Override
+		public String getKey() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		@Override
+		public Integer getValue() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
 	}
 	
@@ -112,6 +121,7 @@ public class WordMultiset // extends something
 		assert wellFormed() : "invariant false at end of constructor";
 	}
 	
+	@Override // required
 	public int size() {
 		assert wellFormed() : "invariant false at start of size()";
 		return numEntries;
@@ -180,11 +190,12 @@ public class WordMultiset // extends something
 
 	private final EntrySet entrySet = new EntrySet();
 	
+	@Override // required
 	public Set<Map.Entry<String,Integer>> entrySet() {
 		return entrySet;
 	}
 	
-	private class EntrySet // extends something
+	private class EntrySet extends AbstractSet<Map.Entry<String, Integer>>
  implements Set<Entry<String, Integer>>
 	{
 
