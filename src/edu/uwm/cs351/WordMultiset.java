@@ -26,12 +26,12 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		@Override
 		public String getKey() {
 			// TODO Auto-generated method stub
-			return null;
+			return string;
 		}
 		@Override
 		public Integer getValue() {
 			// TODO Auto-generated method stub
-			return null;
+			return count;
 		}
 		
 	}
@@ -78,8 +78,15 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	private int checkInRange(Node n, String lo, String hi, Node first, Node next)
 	{
 		// TODO: Update this method
-		if (n == null) return 0;
+		if (n == null){
+	        if (first != next) return reportNeg("Empty subtree should link " + first + " to " + next);
+	        return 0;
+	    }
+
 		if (n.string == null) return reportNeg("null word found");
+		
+		if (n.count <= 0 && n != dummy) return reportNeg("Node count mismatch");
+		
 		//first check node r
 		if (lo != null && (n.string.equals(lo) || n.string.compareTo(lo) < 0))
 			return reportNeg("Detected node outside of low bound: "+n.string);
@@ -87,10 +94,10 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			return reportNeg("Detected node outside of high bound: "+n.string);
 		
 		//check subtrees
-		int leftSubtree =  -1; // fix: checkInRange(n.left, lo, n.string);
+		int leftSubtree = checkInRange(n.left, lo, n.string, first, n); // fix: checkInRange(n.left, lo, n.string);
 		if (leftSubtree < 0) return -1;
 		
-		int rightSubtree = -1; // fix: checkInRange(n.right, n.string, hi);
+		int rightSubtree = checkInRange(n.right, n.string, hi, n.next, next); // fix: checkInRange(n.right, n.string, hi);
 		if (rightSubtree < 0) return -1;
 				
 		//otherwise return 1 + nodes in subtrees
@@ -118,6 +125,12 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	 */
 	public WordMultiset() {
 		// TODO: Implement the constructor (BEFORE the assertion!)
+		dummy = new Node(null);
+	    dummy.left = null;
+	    dummy.right = null;
+	    dummy.next = null;
+	    numEntries = 0;
+	    version = 0;
 		assert wellFormed() : "invariant false at end of constructor";
 	}
 	
@@ -195,7 +208,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		return entrySet;
 	}
 	
-	private class EntrySet extends AbstractSet<Map.Entry<String, Integer>>
+	private class EntrySet extends AbstractSet<Map.Entry<String, Integer>> // extends something
  implements Set<Entry<String, Integer>>
 	{
 
@@ -203,12 +216,6 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		public int size() {
 			// TODO Auto-generated method stub
 			return 0;
-		}
-
-		@Override
-		public boolean isEmpty() {
-			// TODO Auto-generated method stub
-			return false;
 		}
 
 		@Override
@@ -223,23 +230,6 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			return null;
 		}
 
-		@Override
-		public Object[] toArray() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public <T> T[] toArray(T[] a) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public boolean add(Entry<String, Integer> e) {
-			// TODO Auto-generated method stub
-			return false;
-		}
 
 		@Override
 		public boolean remove(Object o) {
@@ -247,29 +237,6 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			return false;
 		}
 
-		@Override
-		public boolean containsAll(Collection<?> c) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean addAll(Collection<? extends Entry<String, Integer>> c) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean retainAll(Collection<?> c) {
-			// TODO Auto-generated method stub
-			return false;
-		}
-
-		@Override
-		public boolean removeAll(Collection<?> c) {
-			// TODO Auto-generated method stub
-			return false;
-		}
 
 		@Override
 		public void clear() {
