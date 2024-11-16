@@ -264,7 +264,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		@Override
 		public int size() {
 			// TODO Auto-generated method stub
-			return 0;
+			return WordMultiset.this.size();
 		}
 
 		@Override
