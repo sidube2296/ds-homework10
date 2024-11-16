@@ -136,6 +136,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	public WordMultiset() {
 		// TODO: Implement the constructor (BEFORE the assertion!)
 		dummy = new Node(null);
+		dummy.count = 0;
 	    dummy.left = null;
 	    dummy.right = null;
 	    dummy.next = null;
@@ -170,8 +171,8 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		else before.next.left = n;       
 		n.next = before.next;
 		before.next = n;
-		numEntries++;
-		version++;
+		//numEntries++;
+		//version++;
 		return n;
 	 }
 	    if (key.compareTo(r.string) == 0) return r;
@@ -182,8 +183,8 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	            r.left = n;
 	            n.next = r;
 	            before.next = n;
-	            numEntries++;
-	            version++;
+	            //numEntries++;
+	            //version++;
 	            return n;
 	        }
 	        return getNode(r.left, key, create, before);
@@ -195,8 +196,8 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	            r.right = n;
 	            n.next = r.next;
 	            r.next = n;
-	            numEntries++;
-	            version++;
+	           // numEntries++;
+	           // version++;
 	            return n;
 	        }
 	        return getNode(r.right, key, create, r);
@@ -233,6 +234,31 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		// TODO: Implement this method
 		assert wellFormed() : "invariant false at end of add";
 		return result;
+	}
+	
+	/**
+	 * Associates the specified value with the specified key in this map.
+	 * If the map previously contained a mapping for the key, the old value is replaced.
+	 * @param key key with which the specified value is to be associated, must not be null
+	 * @param value value to be associated with the specified key
+	 * @return the previous value associated with key, or null if there was no mapping for key.
+	 * @throws NullPointerException if the key is null
+	 */
+	@Override
+	public Integer put(String key, Integer value) {
+		if (key == null) throw new NullPointerException("Key is null");	    
+	    if (value == null) throw new IllegalArgumentException("Value is null");	    
+	    if (value <= 0) throw new IllegalArgumentException("Value is negative");	  
+	    assert wellFormed() : "invariant false at start of put";
+	    Node node = getNode(key, true);
+	    if (node == null) throw new NullPointerException("No node to create");
+	    Integer o = (node.count == 0) ? null : node.count;
+	    node.count = value;
+	    if (o == null && value > 0) numEntries++;
+	    else if (o != null && value == 0) numEntries--; 
+	    version++;
+	    assert wellFormed() : "invariant false at end of put";
+	    return o;
 	}
 	
 	/**
