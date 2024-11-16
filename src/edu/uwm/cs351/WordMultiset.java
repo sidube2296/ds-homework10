@@ -215,7 +215,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	 */
 	private Node getNode(String key, boolean create) {
 		// TODO
-		return null;
+		return getNode(dummy.right, key, create, dummy);
 	}
 	
 	
