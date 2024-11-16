@@ -112,7 +112,17 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	 */
 	private boolean wellFormed() {
 		// TODO: Update this method
-		int n = -1; // fix: checkInRange(root, null, null);
+	    if (dummy == null) return report("Dummy node is null");
+	    
+	    if (dummy.string != null) return report("String in dummy node is null");
+	    
+	    if (dummy.count != 0) return report("Dummy node count should be zero");
+	    
+	    if (dummy.left != null) return report("Dummy node should not have a left child");
+
+	    if (dummy.next == null && numEntries > 0) return report("Error in dummy node's next reference");
+	    
+		int n = checkInRange(dummy.right, null, null, dummy.next, null); // fix: checkInRange(root, null, null);
 		if (n < 0) return false; // problem already reported
 		if (n != numEntries) return report("manyNodes is " + numEntries + " but should be " + n);
 		return true;
