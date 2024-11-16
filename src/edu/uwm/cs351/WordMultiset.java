@@ -118,7 +118,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	    
 	    if (dummy.count != 0) return report("Dummy node count should be zero");
 	    
-	    if (dummy.left != null) return report("Dummy node should not have a left child");
+	    if (dummy.left != null) return report("Dummy node have left child");
 
 	    if (dummy.next == null && numEntries > 0) return report("Error in dummy node's next reference");
 	    
@@ -162,7 +162,45 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	private Node getNode(Node r, String key, boolean create, Node before) {
 		// TODO: When creating the node, use the fact that
 		// either "before" or "before.next" will be the parent of the new node. 
-		return r;
+		if (r == null) {
+		if (!create) return null;
+		Node n = new Node(key);
+		n.count = 0;
+		if (before.right == null) before.right = n; 
+		else before.next.left = n;       
+		n.next = before.next;
+		before.next = n;
+		numEntries++;
+		version++;
+		return n;
+	 }
+	    if (key.compareTo(r.string) == 0) return r;
+	    if (key.compareTo(r.string) < 0) {
+	        if (r.left == null && create) {
+	            Node n = new Node(key);
+	            n.count = 0;
+	            r.left = n;
+	            n.next = r;
+	            before.next = n;
+	            numEntries++;
+	            version++;
+	            return n;
+	        }
+	        return getNode(r.left, key, create, before);
+	    } 
+	    else {
+	        if (r.right == null && create) {
+	            Node n = new Node(key);
+	            n.count = 0;       
+	            r.right = n;
+	            n.next = r.next;
+	            r.next = n;
+	            numEntries++;
+	            version++;
+	            return n;
+	        }
+	        return getNode(r.right, key, create, r);
+	    }
 	}
 	
 	/**
@@ -176,7 +214,8 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	 * @return node, or null if not present (and create is false)
 	 */
 	private Node getNode(String key, boolean create) {
-		return null; // TODO
+		// TODO
+		return null;
 	}
 	
 	
