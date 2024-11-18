@@ -36,12 +36,10 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		
 		@Override
         public Integer setValue(Integer value) {
-            if (value == null || value <= 0) {
-                throw new IllegalArgumentException("Value must be positive");
-            }
-            Integer oldValue = count;
+            if (value == null || value <= 0) throw new IllegalArgumentException("Value is negative");
+            Integer o = count;
             count = value;
-            return oldValue;
+            return o;
         }
 		
 	}
@@ -236,23 +234,15 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		assert wellFormed() : "invariant false at start of add";
 		boolean result = false;
 		// TODO: Implement this method
-		if (str == null) {
-			throw new NullPointerException("String cannot be null");
-		}
-
-		// Retrieve or create the node for the string
-		Node node = getNode(str, true); // Creates a new node if it doesn't exist
-
-		if (node.count == 0) {
-			// Newly added string
-			node.count = 1;
-			numEntries++; // Update total entries
-			version++;    // Update version to reflect structure change
-			result = true; // Indicate the word was newly added
+		if (str == null) throw new NullPointerException("String cannot be null");
+		Node n = getNode(str, true);
+		if (n.count == 0) {
+			n.count = 1;
+			numEntries++;
+			version++; 
+			result = true;
 		} else {
-			// String already exists, increment count
-			node.count++;
-			//version++;
+			n.count++;
 			result = false;
 		}
 		assert wellFormed() : "invariant false at end of add";
@@ -271,18 +261,16 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	public Integer put(String key, Integer value) {
 		if (key == null) throw new NullPointerException("Key is null");	    
 	    if (value == null || value <= 0) throw new IllegalArgumentException("Value must be positive");
-	    assert wellFormed() : "Invariant false at start of put";
-	    
-	    Node node = getNode(key, true);
-	    Integer oldValue = (node.count == 0) ? null : node.count;
-	    node.count = value;
-	    
-	    if (oldValue == null) {
+	    assert wellFormed() : "Invariant false at start of put";	    
+	    Node n = getNode(key, true);
+	    Integer o = (n.count == 0) ? null : n.count;
+	    n.count = value;	    
+	    if (o == null) {
 	        numEntries++;
 	        version++;
 	    }
 	    assert wellFormed() : "Invariant false at end of put";
-	    return oldValue;
+	    return o;
 	}
 	
 	/**
@@ -296,24 +284,16 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		assert wellFormed() : "invariant false at start of removeOne";
 		boolean result = false;
 		// TODO: implement this method
-		if (str == null) {
-		    return false; // Ignore null strings
-		}
-
-		// Retrieve the node for the string without creating it
-		Node node = getNode(str, false);
-
-		if (node == null || node.count == 0) return false;
-	    
-	    if (node.count == 1) {
-	        remove(str); // Fully remove the node
+		if (str == null) return false;
+		Node n = getNode(str, false);
+		if (n == null || n.count == 0) return false;	    
+	    if (n.count == 1) {
+	        remove(str);
 	        version++;
 	    } else {
-	        node.count--; // Decrement the count
-	        //version++;
+	        n.count--;
 	    }
-		    result = true; // The word was in the multiset and was removed
-		
+		  result = true;	
 		assert wellFormed() : "invariant false at end of removeOne";
 		return result;
 	}
@@ -392,7 +372,9 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		public Iterator<Entry<String, Integer>> iterator() {
 			// TODO Auto-generated method stub
 			return new MyIterator();
-		}
+		}	
+
+		
 	}
 	
 	
@@ -449,7 +431,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			 Node t = dummy;
 			 while (t.next != current) t = t.next;
 			 WordMultiset.this.remove(t.string);
-			 expectedVersion = ++version;
+			 expectedVersion = version;
 			 canRemove = false;
 			 assert wellFormed() : "invariant false at end of iterator remove() ";
 		 }			
@@ -641,5 +623,14 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			return wm.getNode(key, create);
 		}
 	}
-			
+
+	@Override 
+	public Integer get(Object key) {
+		// TODO Auto-generated method stub
+		if (!(key instanceof String)) return null;
+	    String str = (String) key;
+	    Node node = getNode(str, false);
+	    return (node != null && node.count > 0) ? node.count : null;
+	}
+	
 }
