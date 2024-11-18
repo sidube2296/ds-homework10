@@ -129,7 +129,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	    if (dummy.count != 0) return report("Dummy node count should be zero");
 	    
 	    if (dummy.left != null) return report("Dummy node have left child");
-	    
+
 	    if (dummy.next == null && numEntries > 0) return report("Error in dummy node's next reference");
 	    
 		int n = checkInRange(dummy.right, null, null, dummy.next, null); // fix: checkInRange(root, null, null);
@@ -181,7 +181,6 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		else before.next.left = n;       
 		n.next = before.next;
 		before.next = n;
-		version++;
 		return n;
 	 }
 	    if (key.compareTo(r.string) == 0) return r;
@@ -192,7 +191,6 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	            r.left = n;
 	            n.next = r;
 	            before.next = n;
-	            version++;
 	            return n;
 	        }
 	        return getNode(r.left, key, create, before);
@@ -204,7 +202,6 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	            r.right = n;
 	            n.next = r.next;
 	            r.next = n;
-	            version++;
 	            return n;
 	        }
 	        return getNode(r.right, key, create, r);
@@ -239,15 +236,23 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		assert wellFormed() : "invariant false at start of add";
 		boolean result = false;
 		// TODO: Implement this method
-		if (str == null) throw new NullPointerException("String is null");
-		Node n = getNode(str, true);
-		if (n.count == 0) {
-			n.count = 1;
-			numEntries++;
-			version++; 
-			result = true;
+		if (str == null) {
+			throw new NullPointerException("String cannot be null");
+		}
+
+		// Retrieve or create the node for the string
+		Node node = getNode(str, true); // Creates a new node if it doesn't exist
+
+		if (node.count == 0) {
+			// Newly added string
+			node.count = 1;
+			numEntries++; // Update total entries
+			version++;    // Update version to reflect structure change
+			result = true; // Indicate the word was newly added
 		} else {
-			n.count++;
+			// String already exists, increment count
+			node.count++;
+			//version++;
 			result = false;
 		}
 		assert wellFormed() : "invariant false at end of add";
@@ -265,20 +270,19 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	@Override
 	public Integer put(String key, Integer value) {
 		if (key == null) throw new NullPointerException("Key is null");	    
-	    if (value == null) throw new IllegalArgumentException("Value is null");	    
-	    if (value <= 0) throw new IllegalArgumentException("Value is negative");	  
-	    assert wellFormed() : "invariant false at start of put";
+	    if (value == null || value <= 0) throw new IllegalArgumentException("Value must be positive");
+	    assert wellFormed() : "Invariant false at start of put";
+	    
 	    Node node = getNode(key, true);
-	    if (node == null) throw new NullPointerException("No node to create");
-	    Integer o = (node.count == 0) ? null : node.count;
+	    Integer oldValue = (node.count == 0) ? null : node.count;
 	    node.count = value;
-	    if (o == null && value > 0) {
-	    	numEntries++;
-	    	version++;
+	    
+	    if (oldValue == null) {
+	        numEntries++;
+	        version++;
 	    }
-	    else if (o != null && value == 0) remove(key);
-	    assert wellFormed() : "invariant false at end of put";
-	    return o;
+	    assert wellFormed() : "Invariant false at end of put";
+	    return oldValue;
 	}
 	
 	/**
@@ -292,14 +296,24 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		assert wellFormed() : "invariant false at start of removeOne";
 		boolean result = false;
 		// TODO: implement this method
-		if (str == null) return false;
-		Node n = getNode(str, false);
-		if (n == null || n.count == 0) return false;	    
-	    if (n.count == 1) {
-	        remove(str);
+		if (str == null) {
+		    return false; // Ignore null strings
+		}
+
+		// Retrieve the node for the string without creating it
+		Node node = getNode(str, false);
+
+		if (node == null || node.count == 0) return false;
+	    
+	    if (node.count == 1) {
+	        remove(str); // Fully remove the node
 	        version++;
-	    } else n.count--;
-		  result = true;
+	    } else {
+	        node.count--; // Decrement the count
+	        //version++;
+	    }
+		    result = true; // The word was in the multiset and was removed
+		
 		assert wellFormed() : "invariant false at end of removeOne";
 		return result;
 	}
@@ -317,14 +331,13 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	    Node p = dummy;
 	    Node c = dummy.right;
 	    while (c != null) {
-	        int cmp = str.compareTo(c.string);
-	        if (cmp < 0) {
+	        if (str.compareTo(c.string) < 0) {
 	            p = c;
 	            c = c.left;
-	        } else if (cmp > 0) {
+	        } else if (str.compareTo(c.string) > 0) {
 	            p = c;
 	            c = c.right;
-	        } else break;
+	        } else break; 
 	    }
 	    if (c == null || c.count == 0) return null;
 	    Integer o = c.count;
@@ -333,11 +346,10 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	        if (p.left == c) p.left = r;
 	        else if (p.right == c) p.right = r;
 	        else dummy.right = r;
-	        }
 	        Node pd = dummy;
 	        while (pd.next != null && pd.next != c) pd = pd.next;
-	        if (pd.next == c) pd.next = c.next; 
-	        else {
+	        if (pd.next == c) pd.next = c.next;
+	    } else {
 	        Node sp = c;
 	        Node s = c.right;
 	        while (s.left != null) {
@@ -348,9 +360,9 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	        c.count = s.count;
 	        if (sp.left == s) sp.left = s.right;
 	        else sp.right = s.right;
-	        pd = dummy;
+	        Node pd = dummy;
 	        while (pd.next != null && pd.next != s) pd = pd.next;
-	        if (pd.next == s) pd.next = s.next; 
+	        if (pd.next == s) pd.next = s.next;
 	        c.next = s.next;
 	    }
 	    numEntries--;
@@ -358,8 +370,7 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	    assert wellFormed() : "Invariant false at end of remove()";
 	    return o;
 	}
-
-		
+	
 	private final EntrySet entrySet = new EntrySet();
 	
 	@Override // required
@@ -377,110 +388,72 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			return WordMultiset.this.size();
 		}
 
-		@Override //random
+		@Override 
 		public Iterator<Entry<String, Integer>> iterator() {
 			// TODO Auto-generated method stub
 			return new MyIterator();
 		}
-
-
 	}
 	
 	
 	// TODO: Implement iterator class
 	 private class MyIterator implements Iterator<Map.Entry<String, Integer>> {
-		 private Node current;
-		 private Node lastReturned;
-		 private int expectedVersion;
+		 private Node current;  
+		 private int expectedVersion;  
 		 private boolean canRemove;
 
-	        /**
-	         * MyIterator constructor initializes the iterator to start at the first real node.
-	         */
-	        public MyIterator() {
-	        	this.current = dummy.next;
-	            this.lastReturned = null;
-	            this.expectedVersion = version;
-	            this.canRemove = false;
-	        }
-	        
-	        public boolean wellFormed() {
-	        	// Check the outer WordMultiset's invariant
-	            if (!WordMultiset.this.wellFormed()) {
-	                reporter.accept("Iterator: WordMultiset is not well-formed");
-	                return false;
-	            }
-	            // Check if the version matches
-	            if (this.expectedVersion != WordMultiset.this.version) {
-	                reporter.accept("Iterator: version mismatch");
-	                return false;
-	            }
-	            // Check if the current node is in the tree
-	            if (current != null) {
-	                Node found = WordMultiset.this.getNode(current.string, false);
-	                if (found != current) {
-	                    reporter.accept("Iterator: Current node is not in the tree");
-	                    return false;
-	                }
-	            }
-	            return true;
-	        }
+		 /**
+		  * Constructor initializes the iterator to start at the node
+		  */
+		 public MyIterator() {
+			 this.current = dummy.next; 
+			 this.expectedVersion = version; 
+			 this.canRemove = false;
+		 }
 
-	        /**
-	         * Checks if the iterator has more elements.
-	         * @return true if there is a next element, false otherwise
-	         */
-	        @Override //required
-	        public boolean hasNext() {
-	        	if (version != expectedVersion) {
-	        		throw new ConcurrentModificationException("WordMultiset modified during iteration");
-	        	}
-	        	assert wellFormed() : "Invariant failed at end of Iterators' next():";
-	            return current != null;
-	        }
-	        
-	        /**
-	         * Returns the next entry in the iterator
-	         * @return the next Map.Entry<String, Integer>
-	         * @throws NoSuchElementException if there are no more elements
-	         * @throws ConcurrentModificationException if the WordMultiset was modified after the iterator was created
-	         */
-	        @Override
-	        public Map.Entry<String, Integer> next() {
-	        	if (version != expectedVersion) {
-	     
-	                throw new ConcurrentModificationException("WordMultiset modified during iteration");
-	            }
-	            if (!hasNext()) {
-	                throw new NoSuchElementException("No more elements to iterate");
-	            }
-	            lastReturned = current;
-	            current = current.next;
-	            canRemove = true;
-	            assert wellFormed() : "Invariant failed at end of Iterators' next():";
-	            return lastReturned;
-	        }
+		 @Override
+		 public boolean hasNext() {
+			 // TODO Auto-generated method stub
+			 if (version != expectedVersion) throw new ConcurrentModificationException("WordMultiset modified during iteration");
+			 return current != null;
+		 }
 
-	        @Override
-	        public void remove() {
-	        	if (!canRemove) throw new IllegalStateException("Cannot remove before Iterator's remove()");
-	            if (version != expectedVersion) throw new ConcurrentModificationException("WordMultiset modified during iteration");
+		 /**
+		  * Returns the next entry in the iterator.
+		  * @return the next Map.Entry<String, Integer>
+		  * @throws NoSuchElementException if there are no more elements
+		  * @throws ConcurrentModificationException if the multiset was modified during iteration
+		  */
+		 @Override
+		 public Map.Entry<String, Integer> next() {
+			 if (version != expectedVersion) throw new ConcurrentModificationException("WordMultiset modified during iteration");
+			 if (current == null) throw new NoSuchElementException("No more elements to iterate");
+			 assert wellFormed() : "invariant false at start of next()";
+			 Node toReturn = current; 
+			 current = current.next; 
+			 canRemove=true;
+			 assert wellFormed() : "invariant false at end of next() ";
+			 return toReturn; 
+		 }
 
-	            assert wellFormed() : "Invariant failed at start of Iterator's remove()";
-
-	            WordMultiset.this.remove(lastReturned.string);
-
-	            // Update the iterator's current reference
-	            if (current == lastReturned) {
-	                current = current.next;  // Skip over the removed node
-	            }
-
-	            lastReturned = null;
-	            canRemove = false;
-	            expectedVersion = version;
-	            assert wellFormed() : "Invariant failed at end of Iterators' remove():";
-	        }
-	     }
+		 /**
+		  * Removes the last element returned by the iterator.
+		  * @throws IllegalStateException if remove is called before next or after a previous remove
+		  * @throws ConcurrentModificationException if the multiset was modified during iteration
+		  */
+		 @Override
+		 public void remove() {
+			 if (version != expectedVersion) throw new ConcurrentModificationException("WordMultiset modified during iteration");
+			 if (!canRemove) throw new IllegalStateException("Cannot remove before next() or after a previous remove()");
+			 assert wellFormed() : "invariant false at start of itertor remove() ";
+			 Node t = dummy;
+			 while (t.next != current) t = t.next;
+			 WordMultiset.this.remove(t.string);
+			 expectedVersion = ++version;
+			 canRemove = false;
+			 assert wellFormed() : "invariant false at end of iterator remove() ";
+		 }			
+	 }
 		
 	/**
 	 * Used for testing the invariant.  Do not change this code.
@@ -668,5 +641,5 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			return wm.getNode(key, create);
 		}
 	}
-	
+			
 }
