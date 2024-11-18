@@ -373,7 +373,36 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			// TODO Auto-generated method stub
 			return new MyIterator();
 		}	
-
+		
+		@Override 
+		public boolean contains(Object o) {
+			// TODO Auto-generated method stub
+			if (!(o instanceof Map.Entry)) return false;
+	        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
+	        if (!(entry.getKey() instanceof String)) return false;
+	        if(!(entry.getValue() instanceof Integer)) return false;
+	        String k = (String) entry.getKey();
+	        Integer val = (Integer) entry.getValue();
+	        Integer sv = WordMultiset.this.get(k);
+	        return Objects.equals(val, sv);
+		}
+		
+		@Override  
+		public boolean remove(Object o) {
+			// TODO Auto-generated method stub
+			if (!(o instanceof Map.Entry)) return false;
+	        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
+	        if (!(entry.getKey() instanceof String)) return false;
+	        String k = (String) entry.getKey();
+	        Integer v = (Integer) entry.getValue();
+	        Node n = getNode(k, false);
+	        if (n != null && Objects.equals(n.count, v)) {
+	            WordMultiset.this.remove(k);
+	            return true;
+	        }
+	        return false;
+	    
+		}
 		
 	}
 	
@@ -624,13 +653,22 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		}
 	}
 
+	@Override    //efficiency
+	public boolean containsKey(Object key) {
+		// TODO Auto-generated method stub
+		 if (!(key instanceof String)) return false;
+		    String str = (String) key;
+		    Node n = getNode(str, false);
+		    return (n != null && n.count > 0);
+	}
+
 	@Override 
 	public Integer get(Object key) {
 		// TODO Auto-generated method stub
 		if (!(key instanceof String)) return null;
 	    String str = (String) key;
-	    Node node = getNode(str, false);
-	    return (node != null && node.count > 0) ? node.count : null;
+	    Node n = getNode(str, false);
+	    return (n != null && n.count > 0) ? n.count : null;
 	}
 	
 }
