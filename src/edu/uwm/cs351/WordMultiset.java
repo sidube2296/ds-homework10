@@ -239,6 +239,17 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		assert wellFormed() : "invariant false at start of add";
 		boolean result = false;
 		// TODO: Implement this method
+		if (str == null) throw new NullPointerException("String is null");
+		Node n = getNode(str, true);
+		if (n.count == 0) {
+			n.count = 1;
+			numEntries++;
+			version++; 
+			result = true;
+		} else {
+			n.count++;
+			result = false;
+		}
 		assert wellFormed() : "invariant false at end of add";
 		return result;
 	}
@@ -281,6 +292,14 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 		assert wellFormed() : "invariant false at start of removeOne";
 		boolean result = false;
 		// TODO: implement this method
+		if (str == null) return false;
+		Node n = getNode(str, false);
+		if (n == null || n.count == 0) return false;	    
+	    if (n.count == 1) {
+	        remove(str);
+	        version++;
+	    } else n.count--;
+		  result = true;
 		assert wellFormed() : "invariant false at end of removeOne";
 		return result;
 	}
@@ -292,57 +311,55 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 	 */
 	@Override
 	public Integer remove(Object key) {
-		 if (!(key instanceof String)) return null;
-		    String str = (String) key;
-		    assert wellFormed() : "Invariant false at start of remove()";
-		    Node p = dummy;
-		    Node c = dummy.right;
-		    while (c != null) {
-		        int cmp = str.compareTo(c.string);
-		        if (cmp < 0) {
-		            p = c;
-		            c = c.left;
-		        } else if (cmp > 0) {
-		            p = c;
-		            c = c.right;
-		        } else break; 
-		    }
-		    if (c == null || c.count == 0) return null; 
-		    Integer o = c.count;
-		    Node n = dummy;
-		    while (n.next != null && n.next != c) n = n.next;
-		    if (n.next == c) n.next = c.next;
-		    if (c.left == null || c.right == null) {
-		        Node child = (c.left != null) ? c.left : c.right;
-		        if (p.left == c) p.left = child;
-		        else if (p.right == c) p.right = child;
-		        else dummy.right = child;		        
-		    } else {
-		        Node sp = c;
-		        Node s = c.right;
-		        while (s.left != null) {
-		            sp = s;
-		            s = s.left;
-		        }
-		        if (sp.left == s) sp.left = s.right;
-		        else sp.right = s.right;
-		        if (c.next == s) c.next = s.next;
-		        else {
-		            Node np = dummy;
-		            while (np.next != null && np.next != s) np = np.next;		            
-		            if (np.next == s) np.next = s.next;
-		        }
-		        c.string = s.string;
-		        c.count = s.count;
-		    }
-		    numEntries--;
-		    version++;
-		    assert wellFormed() : "Invariant false at end of remove()";
-		    return o;
-		}
-	
-	
-	
+		if (!(key instanceof String)) return null;
+	    String str = (String) key;
+	    assert wellFormed() : "Invariant false at start of remove()";
+	    Node p = dummy;
+	    Node c = dummy.right;
+	    while (c != null) {
+	        int cmp = str.compareTo(c.string);
+	        if (cmp < 0) {
+	            p = c;
+	            c = c.left;
+	        } else if (cmp > 0) {
+	            p = c;
+	            c = c.right;
+	        } else break;
+	    }
+	    if (c == null || c.count == 0) return null;
+	    Integer o = c.count;
+	    if (c.left == null || c.right == null) {
+	        Node r = (c.left != null) ? c.left : c.right;
+	        if (p.left == c) p.left = r;
+	        else if (p.right == c) p.right = r;
+	        else dummy.right = r;
+	        }
+	        Node pd = dummy;
+	        while (pd.next != null && pd.next != c) pd = pd.next;
+	        if (pd.next == c) pd.next = c.next; 
+	        else {
+	        Node sp = c;
+	        Node s = c.right;
+	        while (s.left != null) {
+	            sp = s;
+	            s = s.left;
+	        }
+	        c.string = s.string;
+	        c.count = s.count;
+	        if (sp.left == s) sp.left = s.right;
+	        else sp.right = s.right;
+	        pd = dummy;
+	        while (pd.next != null && pd.next != s) pd = pd.next;
+	        if (pd.next == s) pd.next = s.next; 
+	        c.next = s.next;
+	    }
+	    numEntries--;
+	    version++;
+	    assert wellFormed() : "Invariant false at end of remove()";
+	    return o;
+	}
+
+		
 	private final EntrySet entrySet = new EntrySet();
 	
 	@Override // required
