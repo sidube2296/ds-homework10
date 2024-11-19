@@ -421,7 +421,19 @@ public class WordMultiset extends AbstractMap<String, Integer> // extends someth
 			 this.expectedVersion = version; 
 			 this.canRemove = false;
 		 }
+		 
+		 public boolean wellFormed() {
 
+	            if (!WordMultiset.this.wellFormed()) {
+	                return false;
+	            }
+
+	            if (this.expectedVersion != WordMultiset.this.version) {
+	                return false;
+	            }
+	            return true;
+	        }
+		 
 		 @Override
 		 public boolean hasNext() {
 			 // TODO Auto-generated method stub
